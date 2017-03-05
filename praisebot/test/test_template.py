@@ -18,8 +18,13 @@ class TestTemplate(TestCase):
         with self.assertRaisesRegex(TemplateSyntaxError, ".*Error at character 5.*"):
             Template("test", "test", "{{#if")
 
+    def test_no_path_separators(self):
+        with self.assertRaises(AssertionError):
+            Template.locate('/etc/password')
+
     def test_render(self):
-        result = render("@praisebot thank @cmason for being awesome!",
+        result = render("@praisebot thank @cmason for being an all-around awesome dude and "
+                        "helping sing the praises of others!",
                         sender='@pricilla',
                         message_id='hteq3a')
         self.assertIn("cmason", result.svg_text)
