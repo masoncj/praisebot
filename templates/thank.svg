@@ -23,7 +23,7 @@
 </g>
 <rect x="210.5" y="71.2" class="st8" width="312.3" height="67.2"/>
 <text transform="matrix(1 0 0 1 210.4963 84.8386)">
-    {{#wrap message width_chars="30" height_pixels="22" }}
+    {{#wrap message width_chars="32" height_pixels="22" }}
         <tspan x="{{x}}" y="{{y}}" class="st0 st6 st9">{{text}}</tspan>
     {{/wrap}}
 </text>
