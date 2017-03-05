@@ -26,6 +26,13 @@ class TemplateNotFoundError(Exception):
 
 
 class Render(object):
+    """
+    A renderer for the visual representation of a praise.
+
+    The result of executing a Template against a context derived from a chat message, this class
+    wraps the resulting SVG text and enables rendering it to various output formats such as
+    PDF or PNG.
+    """
     def __init__(self, svg_text):
         self.svg_text = svg_text
 
@@ -54,6 +61,12 @@ def wrap_helper(this, options, *args, **kwargs):
 
 
 class Template(object):
+    """
+    Template SVG file for visual representation of a praise.
+
+    Responsible for locating and executing a handlebars template given a context dictionary
+    derived from a chat message.
+    """
 
     def __init__(self, name: str, path: str, template_text:str):
         self.name = name
@@ -76,9 +89,12 @@ class Template(object):
                ) -> 'Template':
         """
         Given template name, search given filesystem paths for svg template.
-        :param template_name:
+
+        :param template_name: string name of template to search for.  Must not contain path
+        separators.
         :param search_paths: (optional) list of filesystem paths to search.
-        :return: a
+        :return: a Template.
+        :raises: TemplateNotFoundError if a template of the given name cannot be located.
         """
         assert os.sep not in template_name
         found_search_paths = []
@@ -110,7 +126,14 @@ class Template(object):
             "No such template {}.  Available templates: {}"
             .format(template_name, ", ".join(templates)))
 
-    def apply(self, template_context) -> Render:
+    def apply(self, template_context: dict) -> Render:
+        """
+        Given a template context dictionary apply the template to that context and return resulting
+        SVG text as a Render.
+
+        :param template_context: a dict containing the variables to use in applying the template.
+        :return: a Render wrapping the resulting SVG text.
+        """
         template = self.template
         svg_text = template(template_context, helpers=self.get_helpers())
         return Render(svg_text)
