@@ -1,0 +1,4 @@
+cairosvg==2.0.1
+parsimonious==0.7.0
+pybars3==0.9.1
+slackclient==1.0.5

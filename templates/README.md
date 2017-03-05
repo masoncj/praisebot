@@ -1,0 +1,3 @@
+# Praisebot templates
+
+TODO
