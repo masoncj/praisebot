@@ -3,6 +3,8 @@ from datetime import datetime
 from parsimonious import NodeVisitor
 from parsimonious.grammar import Grammar
 
+from praisebot.praise import Praise, User
+
 
 class PraiseMessage(object):
     """
@@ -44,9 +46,9 @@ class PraiseMessage(object):
         expression            = bot_user _ template_name _ recipient (_ message)? with_expr? _?
         message               = FOR? _ text
 
-        bot_user              = user ""
+        bot_user              = user_reference ""
         template_name         = string ""
-        recipient             = user ""
+        recipient             = (user_reference / channel_reference)  ""
         with_expr             = _ WITH _ variable_assignment
         variable_assignments  = (variable_assignment COMMA)* variable_assignment
         variable_assignment   = key EQUALS value
@@ -54,13 +56,15 @@ class PraiseMessage(object):
         value                 = string ""
         text                  = bare_string ""
 
-
         FOR                   = "for"
         WITH                  = "with"
         _                     = ~"\s+"
         COMMA                 = "," _?
         EQUALS                = "="
+        channel_reference     = ("<" channel ">" ) / channel
+        user_reference        = ("<" user ">") / user
         user                  = "@" ~"[a-z0-9_-]+"i
+        channel               = "#" ~"[a-z0-9_-]+"i
         string                = non_whitespace_string / double_quote_string / single_quote_string
         non_whitespace_string = ~'[^"s =]+'
         double_quote_string   = ~'"([^"=]|(\")|(\=))*"'
@@ -68,59 +72,55 @@ class PraiseMessage(object):
         bare_string           = ~".+"
     """)
 
-    FIELDS = [
-        'message', 'text', 'recipient', 'bot_user',
-    ]
-
     class Visitor(NodeVisitor):
-        def __init__(self, message):
-            self.message = message
+        def __init__(self, praise, get_user_fn):
+            self.praise = praise
+            self.get_user_fn = get_user_fn
+
+        def get_user(self, user_reference):
+            if user_reference.startswith("<"):
+                user = self.get_user_fn(user_reference[2:-1])
+            else:
+                user = User(id=user_reference, name=user_reference,
+                            full_name=user_reference, icon_url=None)
+            return user
 
         def visit_bot_user(self, bot_user, _):
-            self.message.bot_user = bot_user.text
+            user = self.get_user(bot_user.text)
+            self.praise.bot_user = user.name
+            self.praise.bot_user_name = user.full_name
 
         def visit_template_name(self, template_name, _):
-            self.message.template_name = template_name.text
+            self.praise.template_name = template_name.text
 
         def visit_recipient(self, recipient, _):
-            self.message.recipient = recipient.text
+            user = self.get_user(recipient.text)
+            self.praise.recipient = user.name
+            self.praise.recipient_name = user.full_name
 
         def visit_message(self, message, _):
-            self.message.message = message.text
+            self.praise.message = message.text
 
         def visit_text(self, text, _):
-            self.message.text = text.text
+            self.praise.text = text.text
 
         def visit_for(self, *args):
-            self.message.has_for = True
+            self.praise.has_for = True
 
         def visit_with(self, *args):
-            self.message.has_with = True
+            self.praise.has_with = True
 
         def visit_variable_assignment(self, assignment, arg):
             (key, _, value) = assignment.children
-            self.message.variables[key.text] = value.text
+            self.praise.variables[key.text] = value.text
 
         def generic_visit(self, node, visited_children):
             pass
 
-    def __init__(self, message_text: str, **kwargs):
+    def __init__(self, message_text: str, praise:Praise=None, get_user_fn=None, **kwargs):
+        self.praise = praise
+        if not self.praise:
+            self.praise = Praise()
+        self.praise.update(kwargs)
         self.tree = self.grammar.parse(message_text)
-        self.message = ""  # Full message include "for"
-        self.text = ""  # Bare message text
-        self.variables = kwargs
-        self.message = None
-        self.recipient = None
-        self.bot_user = None
-        self.has_for = False
-        self.has_with = False
-        self.template_name = None
-        self.Visitor(self).visit(self.tree)
-
-    def get_context(self) -> dict:
-        context = {}
-        for field in self.FIELDS:
-            context[field] = getattr(self, field, None)
-        context['date'] = datetime.now().strftime("%-I:%M%p %d %b %Y")
-        context.update(self.variables)
-        return context
+        self.Visitor(self.praise, get_user_fn).visit(self.tree)

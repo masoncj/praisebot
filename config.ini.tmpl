@@ -1,0 +1,48 @@
+[DEFAULT]
+
+# The API token created when registering the bot on https://yourdomain.slack.com/apps
+SLACK_API_TOKEN = xoxb-XXXX
+
+# The name you picked for the bot.
+SLACK_BOT_USERNAME = praisebot
+
+# Comma separated string of things to debug, for example:
+# * `messages` - log all slack messages received. (verbose)
+DEBUG = messages
+
+# For logging configuration see https://docs.python.org/3/library/logging.config.html#logging-config-fileformat
+[loggers]
+keys=root
+
+[handlers]
+keys=file,console
+
+[formatters]
+keys=file,console
+
+[logger_root]
+level=DEBUG
+handlers=file,console
+
+[handler_console]
+class=StreamHandler
+level=DEBUG
+formatter=file
+args=(sys.stdout,)
+
+[handler_file]
+class=handlers.RotatingFileHandler
+level=DEBUG
+formatter=file
+# filename, mode, maxBytes, backupCount
+args=('praisebot.log', 'w', 10485760, 4)
+
+[formatter_file]
+format=F1 %(asctime)s %(levelname)s %(message)s
+datefmt=
+class=logging.Formatter
+
+[formatter_console]
+format=%(levelname)s -%(message)s
+datefmt=
+class=logging.Formatter

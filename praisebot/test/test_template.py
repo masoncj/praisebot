@@ -4,7 +4,7 @@ import re
 
 import magic
 
-from praisebot.bot import render
+from praisebot.bot import render_message
 from praisebot.template import TemplateNotFoundError, Template, TemplateSyntaxError
 
 
@@ -23,15 +23,17 @@ class TestTemplate(TestCase):
             Template.locate('/etc/password')
 
     def test_render(self):
-        result = render("@praisebot thank @cmason for being an all-around awesome dude and "
-                        "helping sing the praises of others!",
-                        sender='@pricilla',
-                        message_id='hteq3a')
-        self.assertIn("cmason", result.svg_text)
-        self.assertIn("thank", result.svg_text)
+        render = render_message(
+            "@praisebot thank @cmason for being an all-around awesome dude and "
+            "helping sing the praises of others!",
+            sender='@priscilla',
+            message_id='hteq3a',
+        )
+        self.assertIn("cmason", render.svg_text)
+        self.assertIn("thank", render.svg_text)
 
-        png_bytes = result.get_png_bytes()
-        pdf_bytes = result.get_pdf_bytes()
+        png_bytes = render.png_bytes
+        pdf_bytes = render.pdf_bytes
 
         magic_db = magic.Magic(mime=True, uncompress=True)
 
@@ -43,6 +45,12 @@ class TestTemplate(TestCase):
 
         with open("/tmp/out.pdf", 'wb') as out_file:
             out_file.write(pdf_bytes)
+
+        meta = render.metadata
+        self.assertEqual(meta['title'], "@priscilla thanked @cmason")
+
+        text = render.raw_text
+        self.assertIn('@priscilla thanked @cmason', text)
 
     def test_wrap(self):
         template_text = """
@@ -63,7 +71,6 @@ class TestTemplate(TestCase):
         template = Template("test", "test", template_text)
 
         svg_str = template.apply({'message': message_text}).svg_text
-        print(svg_str)
         self.assertEqual(
             svg_str.count('/tspan'),
             16)

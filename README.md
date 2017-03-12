@@ -62,11 +62,11 @@ Detailed instructions to come.
 ```
 PYTHON_VERSION=3.5.3
 
-brew install cairo pango gdk-pixbuf libxml2 libxslt libffi pyenv pyenv-virtualenc libmagic
+brew install cairo pango gdk-pixbuf libxml2 libxslt libffi pyenv pyenv-virtualenv libmagic
 pyenv install ${PYTHON_VERSION}
-pyenv virtualenv ${PYTHON_VERSION} venv_praisebot
+pyenv virtualenv ${PYTHON_VERSION} --copies venv_praisebot
 pyenv activate venv_praisebot
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 #### If python build fails with `Symbol not found: _getentropy`:
