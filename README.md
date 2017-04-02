@@ -85,9 +85,63 @@ brew link libxslt --force
 (from [Stackoverflow](http://stackoverflow.com/a/31607751))
 
 
-#### Linux (Raspbian)
+### Linux (Raspbian)
 
-TBD
+```
+sudo apt-get install libcupsimage2-dev cups-bsd git vim libcairo2-dev python3-lxml python3-dev libffi-dev libmagic python-pip avahi-daemon libxml2-dev libxslt-dev python-dev zlib1g-dev links2 
+sudo pip install virtualenv 
+
+# Install Python 3.5.1 from Stretch.
+# TODO should this happen first?
+cat << EOF | sudo tee -a /etc/apt/preferences.d/jessie.pref
+Package: *
+Pin: release a=jessie
+Pin-Priority: 900
+EOF
+cat << EOF | sudo tee -a /etc/apt/preferences.d/stretch.pref
+Package: *
+Pin: release a=stretch
+Pin-Priority: 750
+EOF
+EOF
+cat << EOF | sudo tee -a /etc/apt/sources.list.d/stretch.list
+deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi
+EOF
+sudo apt-get update
+sudo apt-get upgrade python3-dev python3-lxml  libncurses5-dev
+
+# Install Dymo Linux Sofware
+wget http://download.dymo.com/dymo/Software/Download Drivers/Linux/Download/dymo-cups-drivers-1.4.0.tar.gz
+tar xzf dymo-cups-drivers-1.4.0.tar.gz
+cd dymo-cups-drivers-1.4.0.5
+./configure && sudo make install
+# Get device URL:
+lpinfo -v | grep usb
+# Add printer, specifying desired default options:
+sudo lpadmin -p labelwriter -E \
+   -v usb://DYMO/LabelWriter%20450%20Turbo?serial=16121920210107 \  # Note: use device URL from above.
+  -m lw450t.ppd \
+  -oResolution-default=300x600dpi \
+  -o DymoPrintQuality-default=Graphics \
+  -o PageSize-default=w167h540 \  # note: in PostScript points.
+  -o DymoPrintDensity-default=Dark
+# Set default printer:
+sudo lpadmin -d labelwriter
+# To list options:
+lpoptions -p labelwriter -d
+
+# Manually configure:
+sudo usermod -a -G lpadmin pi
+links2 http://localhost:631/admin
+# Follow instructions in https://www.hmazter.com/2013/05/raspberry-pi-printer-server-for-labelwriter to use links install printer.
+
+
+virtualenv -p /usr/bin/python3 venv
+. ./venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt
+
+#sudo apt-get install cairo pango gdk-pixbuf libxml2 libxslt libffi pyenv pyenv-virtualenv libmagic
+```
 
 
 ## Development
