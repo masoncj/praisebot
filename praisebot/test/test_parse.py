@@ -23,7 +23,6 @@ class TestGrammar(TestCase):
         message = self._parse("@praisebot thank @cmason for being awesome with icon=bob")
         self.assertEqual(message.praise.text, 'being awesome')
         self.assertTrue(message.praise.has_for)
-        self.assertTrue(message.praise.has_with)
         self.assertEqual(message.praise.bot_user, '@praisebot')
         self.assertEqual(message.praise.template_name, 'thank')
         self.assertEqual(message.praise.recipient, '@cmason')

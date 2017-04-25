@@ -43,7 +43,7 @@ class PraiseMessage(object):
 #         content               = (_ with_expr)? /  / ((_ FOR? _ text) _ with_expr)
 
     grammar = Grammar("""
-        expression            = bot_user _ template_name _ recipient (_ message)? with_expr? _?
+        expression            = bot_user _ template_name _ recipient (_ message)?
         message               = FOR? _ text
 
         bot_user              = user_reference ""
@@ -54,7 +54,7 @@ class PraiseMessage(object):
         variable_assignment   = key EQUALS value
         key                   = string ""
         value                 = string ""
-        text                  = bare_string ""
+        text                  = reason_with_variable / reason
 
         FOR                   = "for"
         WITH                  = "with"
@@ -69,6 +69,8 @@ class PraiseMessage(object):
         non_whitespace_string = ~'[^"s =]+'
         double_quote_string   = ~'"([^"=]|(\")|(\=))*"'
         single_quote_string   = ~"'([^'=]|(\')|(\=))*'"
+        reason_with_variable  = ~"(.+?) with (.+)=(.+)"
+        reason                = bare_string ""
         bare_string           = ~".+"
     """)
 
@@ -101,14 +103,16 @@ class PraiseMessage(object):
         def visit_message(self, message, _):
             self.praise.message = message.text
 
-        def visit_text(self, text, _):
-            self.praise.text = text.text
+        def visit_reason_with_variable(self, reason_with_variable, _):
+            matching_groups = reason_with_variable.match.groups()
+            self.praise.text = matching_groups[0]
+            self.praise.variables = {matching_groups[1]: matching_groups[2]}
 
-        def visit_for(self, *args):
+        def visit_reason(self, reason, _):
+            self.praise.text = reason.text
+
+        def visit_FOR(self, *args):
             self.praise.has_for = True
-
-        def visit_with(self, *args):
-            self.praise.has_with = True
 
         def visit_variable_assignment(self, assignment, arg):
             (key, _, value) = assignment.children
@@ -123,4 +127,5 @@ class PraiseMessage(object):
             self.praise = Praise()
         self.praise.update(kwargs)
         self.tree = self.grammar.parse(message_text)
+        print(self.tree)
         self.Visitor(self.praise, get_user_fn).visit(self.tree)
