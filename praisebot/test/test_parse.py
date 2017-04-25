@@ -28,6 +28,14 @@ class TestGrammar(TestCase):
         self.assertEqual(message.praise.recipient, '@cmason')
         self.assertEqual(message.praise.variables, {'icon': 'bob'})
 
+    def test_message_containing_with(self):
+        message = self._parse("@praisebot thank @cmason for being awesome with mentoring new grads")
+        self.assertEqual(message.praise.text, 'being awesome with mentoring new grads')
+        self.assertTrue(message.praise.has_for)
+        self.assertEqual(message.praise.bot_user, '@praisebot')
+        self.assertEqual(message.praise.template_name, 'thank')
+        self.assertEqual(message.praise.recipient, '@cmason')
+
     def test_parse_slack_message(self):
         def get_user_fn(user_id):
             return {
