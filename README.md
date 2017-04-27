@@ -84,6 +84,10 @@ brew link libxslt --force
 
 (from [Stackoverflow](http://stackoverflow.com/a/31607751))
 
+### If `pyenv activate venv_praisebot` fails:
+
+Add `eval "$(pyenv init -)"` to your `~/.bashrc` or equivalent script for your shell.
+
 
 ### Linux (Raspbian)
 
