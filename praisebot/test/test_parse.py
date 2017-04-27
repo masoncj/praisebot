@@ -1,6 +1,7 @@
 from unittest import TestCase
-
 from mock import Mock
+from parsimonious.exceptions import VisitationError
+from parameterized import parameterized
 
 from praisebot.bot import SlackMessage
 from praisebot.parse import PraiseMessage
@@ -45,6 +46,16 @@ class TestGrammar(TestCase):
         self.assertEqual(message.praise.template_name, 'thank')
         self.assertEqual(message.praise.recipient, '@cmason')
         self.assertEqual(message.praise.variables, {'icon': 'bob', 'template': 'foo', 'channel': 'bar'})
+
+    @parameterized.expand([
+        "icon=bob template=",
+        "icon=bob =foo",
+        "icon=bob template=foo channel="
+    ])
+    def test_message_and_invalid_variable(self, variable_string):
+        """Raise an error when the Parser parser something that we know to be invalid."""
+        with self.assertRaises(VisitationError):
+            self._parse("@praisebot thank @cmason for being awesome with %s" % variable_string)
 
     def test_message_containing_with(self):
         """Ensure you can use the word `with` in a praise without it being 

@@ -108,8 +108,9 @@ class PraiseMessage(object):
             self.praise.text = matching_groups[0]
             key_value_pairs = matching_groups[1].split(' ')
             for key_value in key_value_pairs:
-                assert len(key_value.split('=')) == 2, 'Parser requires both a key and a value.'
                 key, value = key_value.split('=')
+                assert key != ''
+                assert value != ''
                 self.praise.variables[key] = value
 
         def visit_reason(self, reason, _):
