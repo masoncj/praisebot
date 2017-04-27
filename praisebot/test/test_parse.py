@@ -28,7 +28,27 @@ class TestGrammar(TestCase):
         self.assertEqual(message.praise.recipient, '@cmason')
         self.assertEqual(message.praise.variables, {'icon': 'bob'})
 
+    def test_message_and_two_variables(self):
+        message = self._parse("@praisebot thank @cmason for being awesome with icon=foo template=foo")
+        self.assertEqual(message.praise.text, 'being awesome')
+        self.assertTrue(message.praise.has_for)
+        self.assertEqual(message.praise.bot_user, '@praisebot')
+        self.assertEqual(message.praise.template_name, 'thank')
+        self.assertEqual(message.praise.recipient, '@cmason')
+        self.assertEqual(message.praise.variables, {'icon': 'foo', 'template': 'foo'})
+
+    def test_message_and_three_variables(self):
+        message = self._parse("@praisebot thank @cmason for being awesome with icon=bob template=foo channel=bar")
+        self.assertEqual(message.praise.text, 'being awesome')
+        self.assertTrue(message.praise.has_for)
+        self.assertEqual(message.praise.bot_user, '@praisebot')
+        self.assertEqual(message.praise.template_name, 'thank')
+        self.assertEqual(message.praise.recipient, '@cmason')
+        self.assertEqual(message.praise.variables, {'icon': 'bob', 'template': 'foo', 'channel': 'bar'})
+
     def test_message_containing_with(self):
+        """Ensure you can use the word `with` in a praise without it being 
+        falsely recognized as a variable assignment."""
         message = self._parse("@praisebot thank @cmason for being awesome with mentoring new grads")
         self.assertEqual(message.praise.text, 'being awesome with mentoring new grads')
         self.assertTrue(message.praise.has_for)

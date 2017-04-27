@@ -69,7 +69,7 @@ class PraiseMessage(object):
         non_whitespace_string = ~'[^"s =]+'
         double_quote_string   = ~'"([^"=]|(\")|(\=))*"'
         single_quote_string   = ~"'([^'=]|(\')|(\=))*'"
-        reason_with_variable  = ~"(.+?) with (.+)=(.+)"
+        reason_with_variable  = ~"(.+?) with (((.+?=.+?)\s)*(.+=.+))"
         reason                = bare_string ""
         bare_string           = ~".+"
     """)
@@ -106,7 +106,11 @@ class PraiseMessage(object):
         def visit_reason_with_variable(self, reason_with_variable, _):
             matching_groups = reason_with_variable.match.groups()
             self.praise.text = matching_groups[0]
-            self.praise.variables = {matching_groups[1]: matching_groups[2]}
+            key_value_pairs = matching_groups[1].split(' ')
+            for key_value in key_value_pairs:
+                assert len(key_value.split('=')) == 2, 'Parser requires both a key and a value.'
+                key, value = key_value.split('=')
+                self.praise.variables[key] = value
 
         def visit_reason(self, reason, _):
             self.praise.text = reason.text
@@ -127,5 +131,4 @@ class PraiseMessage(object):
             self.praise = Praise()
         self.praise.update(kwargs)
         self.tree = self.grammar.parse(message_text)
-        print(self.tree)
         self.Visitor(self.praise, get_user_fn).visit(self.tree)
